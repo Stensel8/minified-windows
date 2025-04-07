@@ -1,91 +1,124 @@
-# tiny11builder
+# minified-windows
 
-Scripts to build a trimmed-down Windows 11 image - now in **PowerShell**!
-<br>
-Tiny11 builder, now completely overhauled.
-</br>
-After more than a year (for which I am so sorry) of no updates, tiny11 builder is now a much more complete and flexible solution - one script fits all. Also, it is a steppingstone for an even more fleshed-out solution.
-<br>
-You can now use it on ANY Windows 11 release (not just a specific build), as well as ANY language or architecture.
-This is made possible thanks to the much-improved scripting capabilities of PowerShell, compared to the older Batch release.
-</br>
-Since it is written in PowerShell, you need to set the execution policy to  `Unrestricted`, so that you could run the script.
-If you haven't done this before, make sure to run `Set-ExecutionPolicy unrestricted` as administrator in PowerShell before running the script, otherwise it would just crash.
+Scripts to build a lightweight, fully de-bloated Windows 11 image — now powered by **PowerShell**.
 
+This project is a refreshed, minimal, clean, and efficient Windows 11 setup. After over a year of silence, the builder script is back — with more flexibility, simplicity, and control. Built entirely in PowerShell, it’s a single-script solution to create slimmed-down Windows 11 ISOs that work with:
 
-This is a script created to automate the build of a streamlined Windows 11 image, similar to tiny11.
-My main goal is to use only Microsoft utilities like DISM, and no utilities from external sources. The only executable included is **oscdimg.exe**, which is provided in the Windows ADK and it is used to create bootable ISO images. 
-Also included is an unattended answer file, which is used to bypass the Microsoft Account on OOBE and to deploy the image with the `/compact` flag.
-It's open-source, **so feel free to add or remove anything you want!** Feedback is also much appreciated.
+- ✅ **All Windows 11 versions**
+- ✅ **Any language or SKU**
+- ✅ **x64 and ARM64 architectures**
 
-Also, for the very first time, **introducing tiny11 core builder**! A more powerful script, designed for a quick and dirty development testbed. Just the bare minimun, none of the fluff. 
-This script generates a significantly reduced Windows 11 image. However, it's not suitable for regular use due to its lack of serviceability - you can't add languages, updates, or features post-creation. tiny11 Core is not a full Windows 11 substitute but a rapid testing or development tool, potentially useful for VM environments.
+Perfect for virtual machines, test environments, CI pipelines, or anyone who just wants Windows without the extra baggage.
 
-Instructions:
+---
 
-1. Download Windows 11 from the Microsoft website (<https://www.microsoft.com/software-download/windows11>)
-2. Mount the downloaded ISO image using Windows Explorer.
-3. Select the drive letter where the image is mounted (only the letter, no colon (:))
-4. Select the SKU that you want the image to be based.
-5. Sit back and relax :)
-6. When the image is completed, you will see it in the folder where the script was extracted, with the name tiny11.iso
+## What's New
 
-What is removed:
+- Fully rewritten in **PowerShell**
+- Works with **any official Windows 11 ISO**
+- Uses only **Microsoft-native tools** (DISM + oscdimg)
+- Integrated **unattended setup** (OOBE skip + compact mode)
+- No third-party apps or downloads required
 
-- Clipchamp
-- News
-- Weather
-- Xbox (although Xbox Identity provider is still here, so it should be possible to be reinstalled with no issues)
-- GetHelp
-- GetStarted
-- Office Hub
-- Solitaire
-- PeopleApp
-- PowerAutomate
-- ToDo
-- Alarms
-- Mail and Calendar
-- Feedback Hub
-- Maps
-- Sound Recorder
-- Your Phone
-- Media Player
-- QuickAssist
-- Internet Explorer
-- Tablet PC Math
-- Edge
-- OneDrive
+---
 
-For tiny11 core:
-- all of the above +
+## How to Use
+
+1. Download the official Windows 11 ISO:  
+   [https://www.microsoft.com/software-download/windows11](https://www.microsoft.com/software-download/windows11)
+
+2. Mount the ISO using Windows Explorer.
+
+3. Launch the script:
+   - Select the ISO drive letter (without the colon)
+   - Choose the Windows SKU you want to base the build on
+
+4. Output: A clean `minified-windows.iso` will be created in your working directory.
+
+> Tip: Run PowerShell as **Administrator**, and execute:
+> ```powershell
+> Set-ExecutionPolicy Unrestricted
+> ```
+
+---
+
+## What Gets Removed
+
+### Minified Build:
+- Clipchamp, News, Weather, Xbox (except Identity Provider), GetHelp, GetStarted
+- Office Hub, Solitaire, PeopleApp, PowerAutomate, ToDo, Alarms
+- Mail and Calendar, Feedback Hub, Maps, Sound Recorder, Your Phone
+- Media Player, QuickAssist, Internet Explorer, Tablet PC Math
+- Microsoft Edge, OneDrive
+
+### Minified Core Build (Use at your own risk):
+- Everything above, **plus**:
 - Windows Component Store (WinSxS)
-- Windows Defender (only disabled, can be enabled back if needed)
-- Windows Update (Windows Update wouldn't work anyway without WinSxS, so enabling it would only put the system in a state where it would try to update but fail spectacularily)
+- Windows Defender (disabled)
+- Windows Update (broken by design)
 - WinRE
-<br>
-Keep in mind that **you cannot add back features in tiny11 core**!
-</br>
-<br>
-You will be asked during image creation if you want to enable .net 3.5 support!
-</br>
-Known issues:
 
-1. Although Edge is removed, there are some remnants in the Settings. But the app in itself is deleted. You can install any browser using WinGet (after you update the app using Microsoft Store). If you want Edge, Copilot and Web Search back, simply install Edge using Winget: `winget install edge`.
-<br>
-Note: You might have to update Winget before being able to install any apps, using Microsoft Store.
-<br>
-</br>
-2. Outlook and Dev Home might reappear after some time.
-<br>
-</br>
-3. If you are using this script on arm64, you might see a glimpse of an error while running the script. This is caused by the fact that the arm64 image doesn't have OneDriveSetup.exe included in the System32 folder.
+> ⚠️ Both builds are **non-serviceable** — updates are not guaranteed.
+Even though you may receive updates, there is absolutely no guarantee,
+since key system components and processes may have been removed.
 
-Features to be implemented:
-- ~~disabling telemetry~~ (Implemented in the 04-29-24 release!)
-- more ad suppression
-- improved language and arch detection
-- more flexibility in what to keep and what to delete
-- maybe a GUI???
+---
 
-And that's pretty much it for now!
-Thanks for trying it and let me know how you like it!
+## Features
+
+- Full PowerShell automation
+- Uses only Microsoft tools (DISM + oscdimg)
+- Built-in unattended XML to bypass Microsoft account
+- Optionally enable **.NET Framework 3.5**
+- Clean and modular structure
+
+---
+
+## Known Issues
+
+1. **Edge traces** may remain in Settings UI — app is removed.  
+   > To restore: `winget install edge`
+
+2. **Outlook and Dev Home** may return via the Microsoft Store.
+
+3. **ARM64** may show a harmless error due to missing `OneDriveSetup.exe`.
+
+---
+
+## Roadmap
+
+- Remove **Copilot**, block deeper **telemetry**
+- More control over ads & pre-installed content
+- Better language + architecture detection
+- Modular features and cleaner flags
+- (Maybe) GUI frontend
+
+---
+
+## Thanks To
+
+This tool was inspired by:
+
+- [ntdevlabs](https://github.com/ntdevlabs)
+- [Karl-WE](https://github.com/Karl-WE)
+- [szepeviktor](https://github.com/szepeviktor)
+
+Much respect to their work in Windows optimization and scripting.
+
+---
+
+## Disclaimer
+
+This project is provided as-is and used **at your own risk**.  
+I am **not responsible** for any damage or data loss caused by the use of these scripts.  
+I am **not affiliated with Microsoft** or any related entities.  
+Windows and Windows-related trademarks are owned by **Microsoft Corporation**.
+
+---
+
+## Ideal Use Cases
+
+- Creating fast, clean VM templates
+- Building test setups for software
+- Running Windows on older hardware
+- Minimalist and clean installs
