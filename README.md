@@ -1,6 +1,7 @@
-> **This project is no longer actively maintained.**
-> Better, more comprehensive tools exist for this purpose. See [Recommended Alternatives](#recommended-alternatives) below.
-> The scripts in this repository have been updated with a final round of upstream patches before archiving.
+> [!WARNING]
+> **I no longer recommend using this tool.**
+> It has been superseded by [WinUtil from ChrisTitusTech](https://github.com/ChrisTitusTech/winutil), which is far better at this job and is actively maintained.
+> Please use WinUtil instead — see [Recommended Alternatives](#recommended-alternatives) below for details.
 
 ---
 
@@ -16,19 +17,22 @@ This project is a refreshed, minimal, clean, and efficient Windows 11 setup. Bui
 
 ## Recommended Alternatives
 
-This project was always inspired by, and has now been superseded by, tools that are actively maintained and far more capable:
+**Do not use this tool.** The following alternatives are actively maintained and far more capable:
 
-### [tiny11builder](https://github.com/ntdevlabs/tiny11builder) by ntdevlabs
-The original inspiration for this repo. Regularly updated, well-tested, and the go-to tool for building a debloated Windows 11 ISO offline. If you want what this project offered, use this.
+### ⭐ Option 1 — [WinUtil](https://github.com/ChrisTitusTech/winutil) by ChrisTitusTech *(recommended)*
+This is the tool I recommend. It is a powerful, GUI-based PowerShell utility that does everything this project does — and much more. Inside WinUtil there is a dedicated option to create a **minified Windows 11 image**, which is exactly what this project aimed to do. Use that instead.
 
-### [AtlasOS](https://atlasos.net) by the Atlas team
-A fully preconfigured, open-source Windows distribution focused on performance and privacy. Applied via [AME Wizard](https://ameliorated.io/) with a transparent, auditable YAML playbook. Ideal if you want a reproducible, optimized system with fine-grained control over every tweak.
-
-### [WinUtil](https://github.com/ChrisTitusTech/winutil) by ChrisTitusTech
-A powerful, GUI-based PowerShell utility for live Windows systems. Covers debloating, privacy tweaks, software installation, and performance optimization. Run with:
+Run WinUtil with:
 ```powershell
 irm christitus.com/win | iex
 ```
+Then navigate to the **MicroWin** tab to build your minified Windows 11 ISO.
+
+### ⭐ Option 2 — [AtlasOS](https://atlasos.net) *(for extra performance)*
+If you have already created a minified Windows 11 ISO (e.g. via WinUtil's MicroWin), you can install **AtlasOS** on top of it for even more performance gains and fine-grained tweaks. AtlasOS is an open-source Windows configuration layer applied via [AME Wizard](https://ameliorated.io/) using a transparent, auditable YAML playbook. I have been gaming on AtlasOS and it is a great choice if you dislike the bloat Microsoft has been pushing into Windows 11.
+
+### [tiny11builder](https://github.com/ntdevlabs/tiny11builder) by ntdevlabs
+The original inspiration for this repo. Regularly updated, well-tested, and the go-to tool for building a debloated Windows 11 ISO offline. If you want what this project offered, use this.
 
 ## How to Use
 
