@@ -1,124 +1,135 @@
+> **This project is no longer actively maintained.**
+> Better, more comprehensive tools exist for this purpose. See [Recommended Alternatives](#recommended-alternatives) below.
+> The scripts in this repository have been updated with a final round of upstream patches before archiving.
+
+---
+
 # minified-windows
 
-Scripts to build a lightweight, fully de-bloated Windows 11 image — now powered by **PowerShell**.
+Scripts to build a lightweight, fully de-bloated Windows 11 image, powered by **PowerShell**.
 
-This project is a refreshed, minimal, clean, and efficient Windows 11 setup. After over a year of silence, the builder script is back — with more flexibility, simplicity, and control. Built entirely in PowerShell, it’s a single-script solution to create slimmed-down Windows 11 ISOs that work with:
+This project is a refreshed, minimal, clean, and efficient Windows 11 setup. Built entirely in PowerShell, it is a single-script solution to create slimmed-down Windows 11 ISOs that work with:
 
-- ✅ **All Windows 11 versions**
-- ✅ **Any language or SKU**
-- ✅ **x64 and ARM64 architectures**
+- **All Windows 11 versions**
+- **Any language or SKU**
+- **x64 and ARM64 architectures**
 
-Perfect for virtual machines, test environments, CI pipelines, or anyone who just wants Windows without the extra baggage.
+## Recommended Alternatives
 
----
+This project was always inspired by, and has now been superseded by, tools that are actively maintained and far more capable:
 
-## What's New
+### [tiny11builder](https://github.com/ntdevlabs/tiny11builder) by ntdevlabs
+The original inspiration for this repo. Regularly updated, well-tested, and the go-to tool for building a debloated Windows 11 ISO offline. If you want what this project offered, use this.
 
-- Fully rewritten in **PowerShell**
-- Works with **any official Windows 11 ISO**
-- Uses only **Microsoft-native tools** (DISM + oscdimg)
-- Integrated **unattended setup** (OOBE skip + compact mode)
-- No third-party apps or downloads required
+### [AtlasOS](https://atlasos.net) by the Atlas team
+A fully preconfigured, open-source Windows distribution focused on performance and privacy. Applied via [AME Wizard](https://ameliorated.io/) with a transparent, auditable YAML playbook. Ideal if you want a reproducible, optimized system with fine-grained control over every tweak.
 
----
+### [WinUtil](https://github.com/ChrisTitusTech/winutil) by ChrisTitusTech
+A powerful, GUI-based PowerShell utility for live Windows systems. Covers debloating, privacy tweaks, software installation, and performance optimization. Run with:
+```powershell
+irm christitus.com/win | iex
+```
 
 ## How to Use
 
-1. Download the official Windows 11 ISO:  
+1. Download the official Windows 11 ISO:
    [https://www.microsoft.com/software-download/windows11](https://www.microsoft.com/software-download/windows11)
 
 2. Mount the ISO using Windows Explorer.
 
-3. Launch the script:
-   - Select the ISO drive letter (without the colon)
-   - Choose the Windows SKU you want to base the build on
+3. Launch `Minify-Windows.ps1` as **Administrator**:
+   ```powershell
+   # Standard mode (default)
+   .\Minify-Windows.ps1
 
-4. Output: A clean `minified-windows.iso` will be created in your working directory.
+   # Core mode — maximum removal, use at your own risk
+   .\Minify-Windows.ps1 -Mode Core
 
-> Tip: Run PowerShell as **Administrator**, and execute:
+   # Optionally specify a scratch disk (default: script directory)
+   .\Minify-Windows.ps1 -ScratchDisk D
+   ```
+
+4. Select the ISO drive letter and image index when prompted.
+
+5. Output: `MinifiedWindows.iso` is created in the script directory.
+
+> Run PowerShell as **Administrator** first:
 > ```powershell
-> Set-ExecutionPolicy Unrestricted
+> Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 > ```
 
----
+## Modes
+
+### `-Mode Standard` (default)
+Removes bloatware apps and applies privacy/telemetry tweaks. Suitable for general use.
+
+- Removes: Edge, OneDrive, Copilot, Cortana, Teams, Xbox apps, Sticky Notes, To Do, Maps, Weather, News, Bing, Mail, Camera, Solitaire, Clipchamp, Skype, Outlook, DevHome, and more
+- Registry tweaks: telemetry, taskbar, sponsored apps, privacy, security hardening
+- **No browser will remain** — install one after first boot: `winget install Brave.Brave`
+
+### `-Mode Core`
+Everything in Standard, **plus** more aggressive removal. Intended for VMs and test environments.
+
+- Removes optional Windows features: Internet Explorer, Windows Media Player, WordPad, handwriting, speech, OCR
+- Strips the component store (WinSxS) to the bare minimum — image cannot be updated
+- Removes Windows Recovery Environment (WinRE) — F11 recovery no longer works
+- Completely disables Windows Update
+
+> **Both modes produce a non-serviceable image** — Windows Update is unreliable or fully disabled.
 
 ## What Gets Removed
 
-### Minified Build:
-- Clipchamp, News, Weather, Xbox (except Identity Provider), GetHelp, GetStarted
-- Office Hub, Solitaire, PeopleApp, PowerAutomate, ToDo, Alarms
-- Mail and Calendar, Feedback Hub, Maps, Sound Recorder, Your Phone
-- Media Player, QuickAssist, Internet Explorer, Tablet PC Math
-- Microsoft Edge, OneDrive
+See the **Modes** section above for a per-mode breakdown. The full list of removed AppX package prefixes and registry keys is documented inline in [`Minify-Windows.ps1`](Minify-Windows.ps1).
 
-### Minified Core Build (Use at your own risk):
-- Everything above, **plus**:
-- Windows Component Store (WinSxS)
-- Windows Defender (disabled)
-- Windows Update (broken by design)
-- WinRE
+## Registry Tweaks Applied
 
-> ⚠️ Both builds are **non-serviceable** — updates are not guaranteed.
-Even though you may receive updates, there is absolutely no guarantee,
-since key system components and processes may have been removed.
-
----
-
-## Features
-
-- Full PowerShell automation
-- Uses only Microsoft tools (DISM + oscdimg)
-- Built-in unattended XML to bypass Microsoft account
-- Optionally enable **.NET Framework 3.5**
-- Clean and modular structure
-
----
+- Hardware requirement bypass (TPM, Secure Boot, CPU, RAM)
+- All telemetry disabled (`AllowTelemetry=0`, `DiagTrack` service disabled, `dmwappushservice` disabled)
+- ContentDeliveryManager fully suppressed (no sponsored/suggested apps)
+- Copilot disabled via policy
+- News and Interests / Widgets disabled
+- Chat/Teams icon removed from taskbar
+- Edge uninstall entries cleaned from registry
+- OneDrive folder sync disabled via policy
+- DevHome and Outlook auto-install blocked (UScheduler keys)
+- OOBE local account bypass (`BypassNRO`)
+- BitLocker device encryption disabled
+- Reserved Storage disabled
+- Activity History disabled
+- Sticky Keys annoyance disabled
+- Location access denied by default
+- LLMNR (Link-Local Multicast Name Resolution) disabled
+- Anonymous SAM enumeration blocked
+- Remote Assistance disabled
+- Long paths enabled (`LongPathsEnabled=1`)
+- Scheduled telemetry tasks removed (Appraiser, CEIP, autochk proxy, QueueReporting, DiskDiagnostic)
 
 ## Known Issues
 
-1. **Edge traces** may remain in Settings UI — app is removed.  
+1. **Edge traces** may remain in Settings UI. The app itself is removed.
    > To restore: `winget install edge`
 
-2. **Outlook and Dev Home** may return via the Microsoft Store.
+2. **winget may be missing or broken** after a fresh install from this image, since the App Installer package that ships winget may have been removed or broken during debloat.
+   > Fix by reinstalling winget via [asheroto/winget-install](https://github.com/asheroto/winget-install):
+   > ```powershell
+   > Install-Script winget-install -Force
+   > winget-install -Force
+   > ```
 
 3. **ARM64** may show a harmless error due to missing `OneDriveSetup.exe`.
 
----
+## Thanks & Sources
 
-## Roadmap
+This project was built on the shoulders of:
 
-- Remove **Copilot**, block deeper **telemetry**
-- More control over ads & pre-installed content
-- Better language + architecture detection
-- Modular features and cleaner flags
-- (Maybe) GUI frontend
-
----
-
-## Thanks To
-
-This tool was inspired by:
-
-- [ntdevlabs](https://github.com/ntdevlabs)
-- [Karl-WE](https://github.com/Karl-WE)
-- [szepeviktor](https://github.com/szepeviktor)
-
-Much respect to their work in Windows optimization and scripting.
-
----
+- [ntdevlabs/tiny11builder](https://github.com/ntdevlabs/tiny11builder) - core approach, package list, registry tweaks
+- [SimonCropp/WinDebloat](https://github.com/SimonCropp/WinDebloat) - additional registry tweaks and service disabling
+- [Atlas-OS/Atlas](https://github.com/Atlas-OS/Atlas) - privacy hardening, security policies, performance tweaks
+- [ChrisTitusTech/winutil](https://github.com/ChrisTitusTech/winutil) - additional debloat patterns and registry keys
 
 ## Disclaimer
 
-This project is provided as-is and used **at your own risk**.  
-I am **not responsible** for any damage or data loss caused by the use of these scripts.  
-I am **not affiliated with Microsoft** or any related entities.  
+This project is provided as-is and used **at your own risk**.
+The author is **not responsible** for any damage or data loss caused by the use of these scripts.
+The author is **not affiliated with Microsoft** or any related entities.
 Windows and Windows-related trademarks are owned by **Microsoft Corporation**.
-
----
-
-## Ideal Use Cases
-
-- Creating fast, clean VM templates
-- Building test setups for software
-- Running Windows on older hardware
-- Minimalist and clean installs
