@@ -315,19 +315,19 @@ if ($architecture -eq 'amd64') {
     $folderPaths = @()
 }
 foreach ($fp in $folderPaths) {
-    & takeown /f $fp /r /d y 2>&1 | Add-Content -LiteralPath $logFile
-    & icacls $fp "/grant" "Administrators:F" /T /C 2>&1 | Add-Content -LiteralPath $logFile
-    & attrib -r -s -h "$fp\*" /s /d 2>&1 | Add-Content -LiteralPath $logFile
-    & cmd /c rmdir /s /q "`"$fp`"" 2>&1 | Add-Content -LiteralPath $logFile
+    & takeown /f $fp /r /d y 2>&1 | Out-Null
+    & icacls $fp "/grant" "Administrators:F" /T /C 2>&1 | Out-Null
+    & attrib -r -s -h "$fp\*" /s /d 2>&1 | Out-Null
+    & cmd /c rmdir /s /q "`"$fp`"" 2>&1 | Out-Null
 }
 
-& takeown /f "$ScratchPath\scratchdir\Windows\System32\Microsoft-Edge-Webview" /r 2>&1 | Add-Content -LiteralPath $logFile
-& icacls "$ScratchPath\scratchdir\Windows\System32\Microsoft-Edge-Webview" /grant "$($adminGroup.Value):(F)" /T /C 2>&1 | Add-Content -LiteralPath $logFile
+& takeown /f "$ScratchPath\scratchdir\Windows\System32\Microsoft-Edge-Webview" /r 2>&1 | Out-Null
+& icacls "$ScratchPath\scratchdir\Windows\System32\Microsoft-Edge-Webview" /grant "$($adminGroup.Value):(F)" /T /C 2>&1 | Out-Null
 Remove-Item -Path "$ScratchPath\scratchdir\Windows\System32\Microsoft-Edge-Webview" -Recurse -Force | Out-Null
 
 Write-Log "=== Removing OneDrive ===" -ForegroundColor Cyan
-& takeown /f "$ScratchPath\scratchdir\Windows\System32\OneDriveSetup.exe" 2>&1 | Add-Content -LiteralPath $logFile
-& icacls "$ScratchPath\scratchdir\Windows\System32\OneDriveSetup.exe" /grant "$($adminGroup.Value):(F)" /T /C 2>&1 | Add-Content -LiteralPath $logFile
+& takeown /f "$ScratchPath\scratchdir\Windows\System32\OneDriveSetup.exe" 2>&1 | Out-Null
+& icacls "$ScratchPath\scratchdir\Windows\System32\OneDriveSetup.exe" /grant "$($adminGroup.Value):(F)" /T /C 2>&1 | Out-Null
 Remove-Item -Path "$ScratchPath\scratchdir\Windows\System32\OneDriveSetup.exe" -Force | Out-Null
 
 # ============================================================
@@ -354,14 +354,16 @@ if ($Mode -eq 'Core') {
         "Microsoft-Windows-StepsRecorder-Package~"
     )
 
-    $allPackages = Get-WindowsPackage -Path $scratchDir | Where-Object { $_.PackageState -eq 'Installed' }
+    $allPackages = Get-WindowsPackage -Path $scratchDir | Where-Object {
+        $_.PackageState -eq 'Installed' -and ($_.PackageName -split '~')[3] -eq ''
+    }
 
     foreach ($pattern in $packagePatterns) {
         $packagesToRemove = $allPackages | Where-Object { $_.PackageName -like "$pattern*" }
         foreach ($package in $packagesToRemove) {
             Write-Log "Removing: $($package.PackageName)"
             try {
-                Remove-WindowsPackage -Path $scratchDir -PackageName $package.PackageName -ErrorAction Stop | Out-String | Add-Content -LiteralPath $logFile
+                Remove-WindowsPackage -Path $scratchDir -PackageName $package.PackageName -ErrorAction Stop | Out-Null
             } catch {
                 Write-Log "Warning: Could not remove $($package.PackageName): $_" -ForegroundColor Yellow
             }
@@ -377,8 +379,8 @@ if ($Mode -eq 'Core') {
 
     Write-Log ""
     Write-Log "=== [Core] Removing Windows Recovery Environment (WinRE) ===" -ForegroundColor Magenta
-    & takeown /f "$ScratchPath\scratchdir\Windows\System32\Recovery" /r 2>&1 | Add-Content -LiteralPath $logFile
-    & icacls "$ScratchPath\scratchdir\Windows\System32\Recovery" /grant "Administrators:F" /T /C 2>&1 | Add-Content -LiteralPath $logFile
+    & takeown /f "$ScratchPath\scratchdir\Windows\System32\Recovery" /r 2>&1 | Out-Null
+    & icacls "$ScratchPath\scratchdir\Windows\System32\Recovery" /grant "Administrators:F" /T /C 2>&1 | Out-Null
     Remove-Item -Path "$ScratchPath\scratchdir\Windows\System32\Recovery\winre.wim" -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -Path "$ScratchPath\scratchdir\Windows\System32\Recovery\winre.wim" -ItemType File -Force | Out-Null
 
