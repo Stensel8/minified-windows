@@ -152,14 +152,18 @@ do {
 if (Test-Path "$DriveLetter\sources\install.wim") {
     # Normal case: install.wim is present on the source drive
     Write-Log "Getting image information:"
-    Get-WindowsImage -ImagePath "$DriveLetter\sources\install.wim"
+    $imageInfo = Get-WindowsImage -ImagePath "$DriveLetter\sources\install.wim" | Out-String
+    Write-Host $imageInfo
+    Add-Content -LiteralPath $logFile -Value $imageInfo
     $index = Read-Host "Enter the image index"
     $editionName = (Get-WindowsImage -ImagePath "$DriveLetter\sources\install.wim" -Index $index).ImageName
     $esdConverted = $false
 } elseif (Test-Path "$DriveLetter\sources\install.esd") {
     # ESD case: convert the selected edition to a single-edition WIM
     Write-Log "Found install.esd - listing available editions:"
-    Get-WindowsImage -ImagePath "$DriveLetter\sources\install.esd"
+    $imageInfo = Get-WindowsImage -ImagePath "$DriveLetter\sources\install.esd" | Out-String
+    Write-Host $imageInfo
+    Add-Content -LiteralPath $logFile -Value $imageInfo
     $index = Read-Host "Enter the image index"
     $editionName = (Get-WindowsImage -ImagePath "$DriveLetter\sources\install.esd" -Index $index).ImageName
     Write-Log "Converting '$editionName' to install.wim. This may take a while..."
@@ -350,16 +354,16 @@ if ($Mode -eq 'Core') {
         "Microsoft-Windows-StepsRecorder-Package~"
     )
 
-    $allPackages = & dism /image:$scratchDir /Get-Packages /Format:Table
-    $allPackages = $allPackages -split "`n" | Select-Object -Skip 1
+    $allPackages = Get-WindowsPackage -Path $scratchDir | Where-Object { $_.PackageState -eq 'Installed' }
 
     foreach ($pattern in $packagePatterns) {
-        $packagesToRemove = $allPackages | Where-Object { $_ -like "$pattern*" }
+        $packagesToRemove = $allPackages | Where-Object { $_.PackageName -like "$pattern*" }
         foreach ($package in $packagesToRemove) {
-            $packageIdentity = ($package -split "\s+")[0]
-            if ($packageIdentity) {
-                Write-Log "Removing: $packageIdentity"
-                & dism /image:$scratchDir /Remove-Package /PackageName:$packageIdentity 2>&1 | Add-Content -LiteralPath $logFile
+            Write-Log "Removing: $($package.PackageName)"
+            try {
+                Remove-WindowsPackage -Path $scratchDir -PackageName $package.PackageName -ErrorAction Stop | Out-String | Add-Content -LiteralPath $logFile
+            } catch {
+                Write-Log "Warning: Could not remove $($package.PackageName): $_" -ForegroundColor Yellow
             }
         }
     }
@@ -381,8 +385,8 @@ if ($Mode -eq 'Core') {
     Write-Log ""
     Write-Log "=== [Core] Cleaning WinSxS (minimal component store) ===" -ForegroundColor Magenta
     Write-Log "Taking ownership of WinSxS. This may take a long time..."
-    & takeown /f "$ScratchPath\scratchdir\Windows\WinSxS" /r 2>&1 | Add-Content -LiteralPath $logFile
-    & icacls "$ScratchPath\scratchdir\Windows\WinSxS" /grant "$($adminGroup.Value):(F)" /T /C 2>&1 | Add-Content -LiteralPath $logFile
+    & takeown /f "$ScratchPath\scratchdir\Windows\WinSxS" /r 2>&1 | Out-Null
+    & icacls "$ScratchPath\scratchdir\Windows\WinSxS" /grant "$($adminGroup.Value):(F)" /T /C 2>&1 | Out-Null
 
     $sourceDirectory = "$ScratchPath\scratchdir\Windows\WinSxS"
     $destinationDirectory = "$ScratchPath\scratchdir\Windows\WinSxS_edit"
